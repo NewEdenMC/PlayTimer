@@ -1,0 +1,19 @@
+name: PlayTimer
+author: Doomworks
+main: net.doomworks.playtimer.PlayTimer
+version: 1.0
+
+commands:
+  playtime:
+    description: Shows the users total play time.
+    permission: playtimer.use
+    permission-message: You don't have permission to use this.
+    depend: [Vault]
+permissions:
+  playtimer.*:
+    description: Gives access to all PlayerTimer permission nodes
+    default: op
+    children:
+      playtimer.use: true
+  playtimer.use:
+    description: Gives access to basic PlayTimer functions.
