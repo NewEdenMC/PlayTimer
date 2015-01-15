@@ -6,6 +6,8 @@ A Bukkit plugin that keeps track of the total time a player has played on the se
 
 ---
 
+#### This plugin stores its data in its config file.
+
 #### Commands
 
 - /playtime - Check an online players current total playtime.
@@ -14,6 +16,6 @@ A Bukkit plugin that keeps track of the total time a player has played on the se
 
 - playtimer.use - Provides access to the /playtime command.
 
-### Depenancies
+### Dependancies
 
-This plugin is dependant on [http://dev.bukkit.org/bukkit-plugins/vault/](Vault) for permissions checking.
+- This plugin is dependant on [http://dev.bukkit.org/bukkit-plugins/vault/](Vault) for permissions checking.
