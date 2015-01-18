@@ -1,4 +1,4 @@
-package net.doomworks.playtimer
+package net.doomworks.playtimer;
 
 public final class Util {
   
