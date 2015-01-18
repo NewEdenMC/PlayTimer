@@ -4,6 +4,8 @@
 
 A Bukkit plugin that keeps track of the total time a player has played on the server.
 
+This plugin is a work-in-progress.
+
 ---
 
 #### This plugin stores its data in its config file.
@@ -18,4 +20,4 @@ A Bukkit plugin that keeps track of the total time a player has played on the se
 
 ### Dependancies
 
-- This plugin is dependant on [http://dev.bukkit.org/bukkit-plugins/vault/](Vault) for promoting players.
+- This plugin is dependant on [Vault](http://dev.bukkit.org/bukkit-plugins/vault/) for promoting players.
