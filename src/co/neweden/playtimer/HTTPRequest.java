@@ -1,4 +1,4 @@
-package net.doomworks.playtimer;
+package co.neweden.playtimer;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

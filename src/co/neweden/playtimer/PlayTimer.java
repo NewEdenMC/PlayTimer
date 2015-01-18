@@ -1,4 +1,4 @@
-package net.doomworks.playtimer;
+package co.neweden.playtimer;
 
 import java.util.UUID;
 

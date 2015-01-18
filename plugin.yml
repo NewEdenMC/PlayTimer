@@ -1,6 +1,6 @@
 name: PlayTimer
 author: Doomworks
-main: net.doomworks.playtimer.PlayTimer
+main: co.neweden.playtimer.PlayTimer
 version: 1.0
 
 commands:
