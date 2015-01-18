@@ -18,4 +18,4 @@ A Bukkit plugin that keeps track of the total time a player has played on the se
 
 ### Dependancies
 
-- This plugin is dependant on [http://dev.bukkit.org/bukkit-plugins/vault/](Vault) for permissions checking.
+- This plugin is dependant on [http://dev.bukkit.org/bukkit-plugins/vault/](Vault) for promoting players.
