@@ -1,5 +1,6 @@
 package co.neweden.playtimer;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
@@ -19,10 +20,11 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 public class PlayTimer extends JavaPlugin implements Listener {
 
+	public static ArrayList<Player> verifiedUsers = new ArrayList<Player>();
+	
 	public static Permission permission = null;
 	
-	private boolean setupPermissions()
-    {
+	private boolean setupPermissions() {
         RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();
@@ -60,7 +62,6 @@ public class PlayTimer extends JavaPlugin implements Listener {
 		// Get user UUID and write it into the config file
 		UUID pID = eventLogin.getPlayer().getUniqueId();
 		
-		
 		if (this.getConfig().isInt("players." + pID.toString() + ".totaltime") == false) {
 			updatePlayer(eventLogin.getPlayer());
 		}		
@@ -80,17 +81,21 @@ public class PlayTimer extends JavaPlugin implements Listener {
 			// Check if explorer, if yes promote to builder, message player and broadcast to server
 			
 			if (permission.getPrimaryGroup(player).equals("Explorer")) {
+				if (verifiedUsers.contains(player) == true) return;
+				
 				if (HTTPRequest.forumUserExists(userName) == false) {
-					player.sendMessage(ChatColor.WHITE + "[" + ChatColor.GRAY + "PlayTimer" + ChatColor.WHITE + "]:" + " " + ChatColor.DARK_GREEN + "You need to register on the forums before we can promote you to Builder. Please register at http://pngn.co/q");
+					player.sendMessage(Util.formatString("&f[&8PlayTimer&f]: "+ "&2You need to register on the forums (http://pngn.co/q) before we can promote you to Builder. Please not that you must use your ingame username."));
 					return;
-				} else {
-					permission.playerRemoveGroup(null, player, "Explorer");
-					permission.playerAddGroup(null, player, "Builder");
-				
-					player.sendMessage(ChatColor.DARK_GREEN + "You have been auto-promoted to Builder! :D");
-				
-					getServer().broadcastMessage(ChatColor.WHITE + "[" + ChatColor.GRAY + "PlayTimer" + ChatColor.WHITE + "]:" + " " + ChatColor.DARK_GREEN + player.getName() + " has just been promoted to Builder!");
 				}
+				
+				permission.playerRemoveGroup(null, player, "Explorer");
+				permission.playerAddGroup(null, player, "Builder");
+				
+				verifiedUsers.add(player);
+				
+				player.sendMessage(ChatColor.DARK_GREEN + "You have been auto-promoted to Builder! :D");
+				
+				getServer().broadcastMessage(ChatColor.WHITE + "[" + ChatColor.GRAY + "PlayTimer" + ChatColor.WHITE + "]:" + " " + ChatColor.DARK_GREEN + player.getName() + " has just been promoted to Builder!");
 			}
 		}
 		
