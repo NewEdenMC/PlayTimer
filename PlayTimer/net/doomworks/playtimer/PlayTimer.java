@@ -6,6 +6,7 @@ import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -79,12 +80,17 @@ public class PlayTimer extends JavaPlugin implements Listener {
 			// Check if explorer, if yes promote to builder, message player and broadcast to server
 			
 			if (permission.getPrimaryGroup(player).equals("Explorer")) {
-				permission.playerRemoveGroup(null, player, "Explorer");
-				permission.playerAddGroup(null, player, "Builder");
+				if (HTTPRequest.forumUserExists(userName) == false) {
+					player.sendMessage(ChatColor.WHITE + "[" + ChatColor.GRAY + "PlayTimer" + ChatColor.WHITE + "]:" + " " + ChatColor.DARK_GREEN + "You need to register on the forums before we can promote you to Builder. Please register at http://pngn.co/q");
+					return;
+				} else {
+					permission.playerRemoveGroup(null, player, "Explorer");
+					permission.playerAddGroup(null, player, "Builder");
 				
-				player.sendMessage(ChatColor.DARK_GREEN + "You have been auto-promoted to Builder! :D");
+					player.sendMessage(ChatColor.DARK_GREEN + "You have been auto-promoted to Builder! :D");
 				
-				getServer().broadcastMessage(ChatColor.WHITE + "[" + ChatColor.GRAY + "PlayTimer" + ChatColor.WHITE + "]:" + " " + ChatColor.DARK_GREEN + player.getName() + " has just been promoted to Builder!");
+					getServer().broadcastMessage(ChatColor.WHITE + "[" + ChatColor.GRAY + "PlayTimer" + ChatColor.WHITE + "]:" + " " + ChatColor.DARK_GREEN + player.getName() + " has just been promoted to Builder!");
+				}
 			}
 		}
 		
@@ -128,21 +134,21 @@ public class PlayTimer extends JavaPlugin implements Listener {
 						}
 						return true;
 					} else {
-						
 						@SuppressWarnings("deprecation")
-						Player target = Bukkit.getPlayerExact(args[0]);
-						if(target == null) {
-							sender.sendMessage(ChatColor.GOLD + "Player is not online!");
+						OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+						String uName = this.getConfig().getString("players." + target.getUniqueId() + ".playername");
+						
+						if(uName == null) {
+							sender.sendMessage(ChatColor.GOLD + "No user under that name.");
 						}
 						
-						else if(args[0].equalsIgnoreCase(target.getName())) {
+						else {
 							if(sender instanceof Player) {
-								
 								int uT = this.getConfig().getInt("players." + target.getUniqueId() + ".totaltime");
 								double uHours = Math.floor(uT / 60);
 								int uMinutes = uT % 60;
 								
-								sender.sendMessage(ChatColor.GOLD + "That users playtime: " + ChatColor.DARK_GREEN + (int) uHours + " Hours" + " " + uMinutes + " Minutes");
+								sender.sendMessage(ChatColor.GOLD + uName + " playtime: " + ChatColor.DARK_GREEN + (int) uHours + " Hours" + " " + uMinutes + " Minutes");
 							}
 							return true;
 						}
