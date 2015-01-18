@@ -1,9 +1,10 @@
 package co.neweden.playtimer;
 
 public final class Util {
-  
-  private Util() { }
-  
+
+	private Util() {
+	}
+
 	public static String formatString(String text) {
 		text = text.replaceAll("&0", "§0"); // Black
 		text = text.replaceAll("&1", "§1"); // Dark Blue
@@ -21,14 +22,14 @@ public final class Util {
 		text = text.replaceAll("&d", "§d"); // Light Purple
 		text = text.replaceAll("&e", "§e"); // Yellow
 		text = text.replaceAll("&f", "§f"); // White
-		
+
 		text = text.replaceAll("&k", "§k"); // Obfuscated
 		text = text.replaceAll("&l", "§l"); // Bold
 		text = text.replaceAll("&m", "§m"); // Strikethrough
 		text = text.replaceAll("&o", "§o"); // Italic
 		text = text.replaceAll("&r", "§r"); // Reset
-		
+
 		return text;
 	}
-  
+
 }
