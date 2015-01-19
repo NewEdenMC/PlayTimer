@@ -71,7 +71,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 		}
 	}
 
-	// Player time updater
+	// Player time updater and rank increaser
 	public void updatePlayer(Player player) {
 		int totalTime = 0;
 		String userName = player.getName().toString();
@@ -87,24 +87,32 @@ public class PlayTimer extends JavaPlugin implements Listener {
 			// broadcast to server
 
 			if (permission.getPrimaryGroup(player).equals("Explorer")) {
+				// Checks if an Explorer has been added to the verified users
+				// list
 				if (verifiedUsers.contains(player) == true)
 					return;
-
+				
+				// Checks if the user exists on the forums and gives a
+				// registration link if they don't
 				if (HTTPRequest.forumUserExists(userName) == false) {
 					player.sendMessage(Util
 							.formatString("&f[&8PlayTimer&f]: "
-									+ "&2You need to register on the forums (http://pngn.co/q) before we can promote you to Builder. Please not that you must use your ingame username."));
+									+ "&2You need to register on the forums (http://pngn.co/q) before we can promote you to Builder. Please note that you must use your ingame username."));
 					return;
 				}
 
 				permission.playerRemoveGroup(null, player, "Explorer");
 				permission.playerAddGroup(null, player, "Builder");
-
+				
+				// Adds the new Builder to a verified users list to stop
+				// rank-up message spam until relog
 				verifiedUsers.add(player);
-
+				
+				// Informs player of new rank
 				player.sendMessage(Util
 						.formatString("&2You have been auto-promoted to Builder! :D"));
-
+				
+				// Broadcasts user rank-up for all online players to see
 				getServer().broadcastMessage(
 						Util.formatString("&f[&8PlayTimer&f]: "
 								+ ChatColor.DARK_GREEN + player.getName()
