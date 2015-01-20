@@ -97,7 +97,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 				if (HTTPRequest.forumUserExists(userName) == false) {
 					player.sendMessage(Util
 							.formatString("&f[&8PlayTimer&f]: "
-									+ "&2You need to register on the forums (http://pngn.co/q) before we can promote you to Builder. Please note that you must use your ingame username."));
+									+ "&6Congratulations! You have played for atleast 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is to register on our forum, go to http://pngn.co/q to get started. Remember to register using your Minecraft username, otherwise you won't get promote"));
 					return;
 				}
 
