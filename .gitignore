@@ -13,6 +13,7 @@ local.properties
 
 # Eclipse Core
 .project
+export.jardesc
 
 # External tool builders
 .externalToolBuilders/
