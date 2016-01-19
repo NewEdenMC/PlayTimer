@@ -3,6 +3,10 @@ package co.neweden.playtimer;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import co.neweden.websitelink.User;
+import co.neweden.websitelink.jsonstorage.UserObject;
+
+import co.neweden.websitelink.jsonstorage.UserObject;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
@@ -66,14 +70,14 @@ public class PlayTimer extends JavaPlugin implements Listener {
 		// Get user UUID and write it into the config file
 		UUID pID = eventLogin.getPlayer().getUniqueId();
 
-		if (this.getConfig().isInt("players." + pID.toString() + ".totaltime") == false) {
+		if (!this.getConfig().isInt("players." + pID.toString() + ".totaltime")) {
 			updatePlayer(eventLogin.getPlayer());
 		}
 	}
 
 	// Player time updater and rank increaser
 	public void updatePlayer(Player player) {
-		int totalTime = 0;
+		int totalTime;
 		String userName = player.getName().toString();
 		try {
 			totalTime = this.getConfig().getInt(
@@ -89,15 +93,16 @@ public class PlayTimer extends JavaPlugin implements Listener {
 			if (permission.getPrimaryGroup(player).equals("Explorer")) {
 				// Checks if an Explorer has been added to the verified users
 				// list
-				if (verifiedUsers.contains(player) == true)
+				if (verifiedUsers.contains(player))
 					return;
 				
 				// Checks if the user exists on the forums and gives a
 				// registration link if they don't
-				if (HTTPRequest.forumUserExists(userName) == false) {
+				UserObject apiObject = User.getUser(player);
+				if (apiObject != null && !apiObject.userExists) {
 					player.sendMessage(Util
-							.formatString("&f[&8PlayTimer&f]: "
-									+ "&6Congratulations! You have played for atleast 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is to register on our forum, go to http://pngn.co/q to get started. Remember to register using your Minecraft username, otherwise you won't get promote"));
+							.formatString("&f[&7PlayTimer&f]: "
+									+ "&6Congratulations! You have played for at least 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is to register on our forum, go to http://pngn.co/q to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
 					return;
 				}
 
@@ -114,7 +119,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 				
 				// Broadcasts user rank-up for all online players to see
 				getServer().broadcastMessage(
-						Util.formatString("&f[&8PlayTimer&f]: "
+						Util.formatString("&f[&7PlayTimer&f]: "
 								+ ChatColor.DARK_GREEN + player.getName()
 								+ " has just been promoted to Builder!"));
 			}
@@ -150,8 +155,10 @@ public class PlayTimer extends JavaPlugin implements Listener {
 								"players." + player.getUniqueId()
 										+ ".totaltime");
 
+						int pDays = 0;
 						double pHours = Math.floor(pT / 60);
 						int pMinutes = pT % 60;
+
 						sender.sendMessage(ChatColor.GOLD + "Your playtime: "
 								+ ChatColor.DARK_GREEN + (int) pHours
 								+ " Hours" + " " + pMinutes + " Minutes");
