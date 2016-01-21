@@ -102,7 +102,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 				if (apiObject != null && !apiObject.userExists) {
 					player.sendMessage(Util
 							.formatString("&f[&7PlayTimer&f]: "
-									+ "&6Congratulations! You have played for at least 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is to register on our forum, go to http://pngn.co/q to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
+									+ "&6Congratulations! You have played for at least 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is to register on our forum, go to http://pngn.co/16 to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
 					return;
 				}
 
