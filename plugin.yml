@@ -2,6 +2,7 @@ name: PlayTimer
 author: Doomworks
 main: co.neweden.playtimer.PlayTimer
 version: 1.1
+depend: [WebsiteLink]
 
 commands:
   playtime:
