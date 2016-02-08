@@ -6,7 +6,6 @@ import java.util.UUID;
 import co.neweden.websitelink.User;
 import co.neweden.websitelink.jsonstorage.UserObject;
 
-import co.neweden.websitelink.jsonstorage.UserObject;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
