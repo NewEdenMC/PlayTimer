@@ -35,3 +35,7 @@ export.jardesc
 
 # TeXlipse plugin
 .texlipse
+
+# IntelliJ Stuff
+.idea
+*.iml
