@@ -23,7 +23,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 public class PlayTimer extends JavaPlugin implements Listener {
 
-	public static ArrayList<Player> verifiedUsers = new ArrayList<Player>();
+	public static ArrayList<Player> verifiedUsers = new ArrayList<>();
 
 	public static Permission permission = null;
 
@@ -77,7 +77,6 @@ public class PlayTimer extends JavaPlugin implements Listener {
 	// Player time updater and rank increaser
 	public void updatePlayer(Player player) {
 		int totalTime;
-		String userName = player.getName().toString();
 		try {
 			totalTime = this.getConfig().getInt(
 					"players." + player.getUniqueId() + ".totaltime");
@@ -126,8 +125,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 
 		this.getConfig().set("players." + player.getUniqueId() + ".totaltime",
 				totalTime + 1);
-		this.getConfig().set("players." + player.getUniqueId() + ".playername",
-				userName);
+		this.getConfig().set("players." + player.getUniqueId() + ".playername", player.getName());
 		this.saveConfig();
 
 	}
