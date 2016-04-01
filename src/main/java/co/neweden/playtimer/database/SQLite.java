@@ -7,13 +7,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 
-import co.neweden.playtimer.database.Database; // import the database class.
-import co.neweden.playtimer.PlayTimer; // import your main class
+import co.neweden.playtimer.PTMain;
 
 
 public class SQLite extends Database{
     String dbname;
-    public SQLite(PlayTimer instance){
+    public SQLite(PTMain instance){
         super(instance);
         dbname = plugin.getConfig().getString("SQLite.Filename", "playtimer_data"); // Set the table name here e.g player_kills
     }

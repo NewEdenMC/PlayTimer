@@ -23,7 +23,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import co.neweden.playtimer.database.SQLite;
 
-public class PlayTimer extends JavaPlugin implements Listener {
+public class PTMain extends JavaPlugin implements Listener {
 
 	public static ArrayList<Player> verifiedUsers = new ArrayList<>();
 
@@ -43,7 +43,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 	// update the config/database
 	public void onEnable() {
 		// Greetings console!
-		getLogger().info("PlayTimer started!");
+		getLogger().info("PTMain started!");
 
 		// Setup vault perms
 		setupPermissions();
@@ -208,7 +208,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 	}
 
 	public void onDisable() {
-		getLogger().info("PlayTimer stopped!");
+		getLogger().info("PTMain stopped!");
 	}
 
 }

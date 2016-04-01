@@ -6,20 +6,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
+import co.neweden.playtimer.PTMain;
 import org.bukkit.entity.Player;
-
-import co.neweden.playtimer.database.Error; // YOU MUST IMPORT THE CLASS ERROR, AND ERRORS!!!
-import co.neweden.playtimer.database.Errors;
-import co.neweden.playtimer.PlayTimer; // Import main class!
 
 
 public abstract class Database {
-    PlayTimer plugin;
+    PTMain plugin;
     Connection connection;
     // The name of the table we created back in SQLite class.
     public String table = "playtimer_data";
     public int tokens = 0;
-    public Database(PlayTimer instance){
+    public Database(PTMain instance){
         plugin = instance;
     }
 
