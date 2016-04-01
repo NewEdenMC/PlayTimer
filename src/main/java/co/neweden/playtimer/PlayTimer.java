@@ -21,6 +21,8 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import co.neweden.playtimer.database.SQLite;
+
 public class PlayTimer extends JavaPlugin implements Listener {
 
 	public static ArrayList<Player> verifiedUsers = new ArrayList<>();
@@ -46,7 +48,7 @@ public class PlayTimer extends JavaPlugin implements Listener {
 		// Setup vault perms
 		setupPermissions();
 
-		// Schedule plugin to run every minute (1200 Ticks) and update users
+		// Schedule plugin to run every minute (1200 Ticks) and update users4
 		// currently connected in the config
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
@@ -72,6 +74,8 @@ public class PlayTimer extends JavaPlugin implements Listener {
 		if (!this.getConfig().isInt("players." + pID.toString() + ".totaltime")) {
 			updatePlayer(eventLogin.getPlayer());
 		}
+
+
 	}
 
 	// Player time updater and rank increaser
