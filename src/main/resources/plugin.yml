@@ -1,6 +1,6 @@
 name: PTMain
 author: Doomworks
-main: co.neweden.playtimer.PTMainrsion: 1.1
+main: co.neweden.playtimer.PTMain
 depend: [WebsiteLink]
 
 commands:
