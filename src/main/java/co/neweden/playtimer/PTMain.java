@@ -127,6 +127,26 @@ public class PTMain extends JavaPlugin implements Listener {
 			}
 		}
 
+		if (totalTime >= 259200) {
+			// Checks if player  has been on the server for a total time  of three days,
+			// if so promotes the player to builder+
+
+			if (permission.getPrimaryGroup(player).equals("Builder")) {
+
+				permission.playerRemoveGroup(null, player, "Builder");
+				permission.playerAddGroup(null, player, "Builder+");
+
+				// Informs player of new rank
+				player.sendMessage(Util.formatString("&2You have player for 3 days total, as a reward you have been promoted to Builder+, thanks for continuing to play!"));
+
+				//Broadcasts user rank-up to server chat
+				getServer().broadcastMessage(
+						Util.formatString("&f[&7PlayTimer&f]: "
+								+ ChatColor.DARK_GREEN + player.getName()
+								+ " has just been promoted to Builder+!"));
+			}
+		}
+
 		this.getConfig().set("players." + player.getUniqueId() + ".totaltime",
 				totalTime + 1);
 		this.getConfig().set("players." + player.getUniqueId() + ".playername", player.getName());
