@@ -127,7 +127,7 @@ public class PTMain extends JavaPlugin implements Listener {
 			}
 		}
 
-		if (totalTime >= 259200) {
+		if (totalTime >= 4320) {
 			// Checks if player  has been on the server for a total time  of three days,
 			// if so promotes the player to builder+
 
