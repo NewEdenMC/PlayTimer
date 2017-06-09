@@ -1,7 +1,7 @@
-name: PlayTimer
+name: ${artifactId}
+version: ${version}
 author: Doomworks
 main: co.neweden.playtimer.PTMain
-version: 1.2
 depend: [WebsiteLink]
 
 commands:
