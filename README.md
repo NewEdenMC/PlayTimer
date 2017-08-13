@@ -1,6 +1,6 @@
 # PlayTimer
 
-##Time keeping simplified
+## Time keeping simplified
 
 A Bukkit plugin that keeps track of the total time a player has played on the server.
 

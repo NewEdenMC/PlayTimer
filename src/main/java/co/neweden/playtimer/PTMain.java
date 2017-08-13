@@ -1,11 +1,16 @@
 package co.neweden.playtimer;
 
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.UUID;
 
 import co.neweden.websitelink.User;
 import co.neweden.websitelink.jsonstorage.UserObject;
 
+
+import com.mysql.jdbc.Connection;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
@@ -21,9 +26,17 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import co.neweden.playtimer.database.SQLite;
 
 public class PTMain extends JavaPlugin implements Listener {
+
+
+	// MySQL Database variables
+	final String username = "root";
+	final String password = "A=gc7bjPdDb/3WaXUvi]=";
+	final String url = "jdbc:mysql://localhost:3306/playtimer_data";
+
+	//Connection Variables
+	static Connection connection;
 
 	public static ArrayList<Player> verifiedUsers = new ArrayList<>();
 
@@ -43,25 +56,60 @@ public class PTMain extends JavaPlugin implements Listener {
 	// update the config/database
 	public void onEnable() {
 		// Greetings console!
-		getLogger().info("PTMain started!");
+		getLogger().info("PlayTimer started!");
 
 		// Setup vault perms
 		setupPermissions();
 
-		// Schedule plugin to run every minute (1200 Ticks) and update users4
+		// Schedule plugin to run every minute (1200 Ticks) and update users
 		// currently connected in the config
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
+		BukkitScheduler updatePlayerScheduler = Bukkit.getServer().getScheduler();
+		updatePlayerScheduler.scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
 				updateAllPlayers();
 			}
 
 		}, 0L, 1200L);
 
+		// Schedule plugin to run every hour to check for pending registrations
+		BukkitScheduler promotePendingScheduler = Bukkit.getServer().getScheduler();
+		promotePendingScheduler.scheduleSyncRepeatingTask(this, new Runnable() {
+			public void run() {
+				checkPromotePending();
+			}
+		}, 0L, 1200L);
+
 		// Register Events
 		getServer().getPluginManager().registerEvents(this, this);
 
-		// Create default config.yml in the pugins folder
+		// Start MySQL connector
+		try { //We use a try catch to avoid errors, hopefully we don't get any.
+			Class.forName("com.mysql.jdbc.Driver"); //this accesses Driver in jdbc.
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			System.err.println("jdbc driver unavailable!");
+			return;
+		}
+		try { //Another try catch to get any SQL errors (for example connections errors)
+			connection = (Connection) DriverManager.getConnection(url,username,password);
+			//with the method getConnection() from DriverManager, we're trying to set
+			//the connection's url, username, password to the variables we made earlier and
+			//trying to get a connection at the same time. JDBC allows us to do this.
+		} catch (SQLException e) { //catching errors)
+			e.printStackTrace(); //prints out SQLException errors to the console (if any)
+		}
+
+		String sql = "CREATE TABLE IF NOT EXISTS users(User varchar(64));";
+
+		try {
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			// I use executeUpdate() to update the databases table.
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		// Create default config.yml in the plugins folder
 		this.saveDefaultConfig();
 
 	}
@@ -73,7 +121,9 @@ public class PTMain extends JavaPlugin implements Listener {
 
 		if (!this.getConfig().isInt("players." + pID.toString() + ".totaltime")) {
 			updatePlayer(eventLogin.getPlayer());
+			promotePending(eventLogin.getPlayer());
 		}
+
 
 
 	}
@@ -88,6 +138,12 @@ public class PTMain extends JavaPlugin implements Listener {
 			totalTime = 0;
 		}
 
+		this.getConfig().set("players." + player.getUniqueId() + ".totaltime",
+				totalTime + 1);
+		this.getConfig().set("players." + player.getUniqueId() + ".playername", player.getName());
+		this.getConfig().set("players." + player.getUniqueId() + ".promotepending", false);
+		this.saveConfig();
+
 		if (totalTime >= 719) {
 			// Check if explorer, if yes promote to builder, message player and
 			// broadcast to server
@@ -97,33 +153,30 @@ public class PTMain extends JavaPlugin implements Listener {
 				// list
 				if (verifiedUsers.contains(player))
 					return;
-				
+
 				// Checks if the user exists on the forums and gives a
 				// registration link if they don't
-				UserObject apiObject = User.getUser(player);
-				if (apiObject != null && !apiObject.userExists) {
-					player.sendMessage(Util
-							.formatString("&f[&7PlayTimer&f]: "
-									+ "&6Congratulations! You have played for at least 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is to register on our forum, go to http://pngn.co/16 to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
-					return;
-				}
+				if (getConfig().getBoolean("players." + player.getUniqueId() + ".promotepending", true)) {
 
-				permission.playerRemoveGroup(null, player, "Explorer");
-				permission.playerAddGroup(null, player, "Builder");
-				
-				// Adds the new Builder to a verified users list to stop
-				// rank-up message spam until relog
-				verifiedUsers.add(player);
-				
-				// Informs player of new rank
-				player.sendMessage(Util
-						.formatString("&2You have been auto-promoted to Builder! :D"));
-				
-				// Broadcasts user rank-up for all online players to see
-				getServer().broadcastMessage(
-						Util.formatString("&f[&7PlayTimer&f]: "
-								+ ChatColor.DARK_GREEN + player.getName()
-								+ " has just been promoted to Builder!"));
+					getLogger().info("Tried to promote " + player.getName());
+
+					permission.playerRemoveGroup(null, player, "Explorer");
+					permission.playerAddGroup(null, player, "Builder");
+
+					// Adds the new Builder to a verified users list to stop
+					// rank-up message spam until relog
+					verifiedUsers.add(player);
+
+					// Informs player of new rank
+					player.sendMessage(Util
+							.formatString("&2You have been auto-promoted to Builder! :D"));
+
+					// Broadcasts user rank-up for all online players to see
+					getServer().broadcastMessage(
+							Util.formatString("&f[&7PlayTimer&f]: "
+									+ ChatColor.DARK_GREEN + player.getName()
+									+ " has just been promoted to Builder!"));
+				}
 			}
 		}
 
@@ -137,7 +190,7 @@ public class PTMain extends JavaPlugin implements Listener {
 				permission.playerAddGroup(null, player, "Builder+");
 
 				// Informs player of new rank
-				player.sendMessage(Util.formatString("&2You have player for 3 days total, as a reward you have been promoted to Builder+, thanks for continuing to play!"));
+				player.sendMessage(Util.formatString("&2You have played for 3 days total, as a reward you have been promoted to Builder+, thanks for continuing to play!"));
 
 				//Broadcasts user rank-up to server chat
 				getServer().broadcastMessage(
@@ -147,11 +200,22 @@ public class PTMain extends JavaPlugin implements Listener {
 			}
 		}
 
-		this.getConfig().set("players." + player.getUniqueId() + ".totaltime",
-				totalTime + 1);
-		this.getConfig().set("players." + player.getUniqueId() + ".playername", player.getName());
-		this.saveConfig();
 
+
+	}
+
+
+	// Checks to see if the player has a promotion pending and reminds them that they need to register on the forums
+	public void promotePending(Player player) {
+		if (this.getConfig().getBoolean("players." + player.getUniqueId() + ".promotepending", false)) {
+			UserObject apiObject = User.getUser(player);
+			if (apiObject != null && !apiObject.userExists) {
+				player.sendMessage(Util
+						.formatString("&f[&7PlayTimer&f]: "
+								+ "&6Congratulations! You have played for at least 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is register on our forum, go to http://pngn.co/16 to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
+				this.getConfig().set("players." + player.getUniqueId() + ".promotepending", true);
+			}
+		}
 	}
 
 	// Loops around the online players and updates the config accordingly
@@ -159,7 +223,13 @@ public class PTMain extends JavaPlugin implements Listener {
 		// listPlayers refers to the player list
 		for (Player listPlayers : getServer().getOnlinePlayers()) {
 			updatePlayer(listPlayers);
+		}
+	}
 
+	// Loops and checks for pending promotions
+	public void checkPromotePending() {
+		for (Player listPlayers : getServer().getOnlinePlayers()) {
+			promotePending(listPlayers);
 		}
 	}
 
@@ -227,8 +297,18 @@ public class PTMain extends JavaPlugin implements Listener {
 		return false;
 	}
 
+	// Plugin disable, shuts down the database connection and ends the process
 	public void onDisable() {
-		getLogger().info("PTMain stopped!");
+		try { //using a try catch to catch connection errors (like wrong sql password...)
+			if (connection!=null && !connection.isClosed()){ //checking if connection isn't null to
+				//avoid receiving a nullpointer
+				connection.close(); //closing the connection field variable.
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		getLogger().info("PlayTimer stopped!");
 	}
 
 }
