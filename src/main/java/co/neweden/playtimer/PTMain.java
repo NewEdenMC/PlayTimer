@@ -144,12 +144,12 @@ public class PTMain extends JavaPlugin implements Listener {
 		this.getConfig().set("players." + player.getUniqueId() + ".promotepending", false);
 		this.saveConfig();
 
-		if (totalTime >= 719) {
-			// Check if explorer, if yes promote to builder, message player and
+		if (totalTime >= 360) {
+			// Check if newcomer has registered and reached 6 hours, if yes promote to Member, message player and
 			// broadcast to server
 
-			if (permission.getPrimaryGroup(player).equals("Explorer")) {
-				// Checks if an Explorer has been added to the verified users
+			if (permission.getPrimaryGroup(player).equals("Newcomer")) {
+				// Checks if a newcomer has been added to the verified users
 				// list
 				if (verifiedUsers.contains(player))
 					return;
@@ -160,8 +160,8 @@ public class PTMain extends JavaPlugin implements Listener {
 
 					getLogger().info("Tried to promote " + player.getName());
 
-					permission.playerRemoveGroup(null, player, "Explorer");
-					permission.playerAddGroup(null, player, "Builder");
+					permission.playerRemoveGroup(null, player, "Newcomer");
+					permission.playerAddGroup(null, player, "Member");
 
 					// Adds the new Builder to a verified users list to stop
 					// rank-up message spam until relog
@@ -169,39 +169,113 @@ public class PTMain extends JavaPlugin implements Listener {
 
 					// Informs player of new rank
 					player.sendMessage(Util
-							.formatString("&2You have been auto-promoted to Builder! :D"));
+							.formatString("&2You have been auto-promoted to Member! :D"));
 
 					// Broadcasts user rank-up for all online players to see
 					getServer().broadcastMessage(
 							Util.formatString("&f[&7PlayTimer&f]: "
 									+ ChatColor.DARK_GREEN + player.getName()
-									+ " has just been promoted to Builder!"));
+									+ " has just been promoted to Member!"));
 				}
 			}
 		}
 
-		if (totalTime >= 4320) {
-			// Checks if player  has been on the server for a total time  of three days,
-			// if so promotes the player to builder+
+		if (totalTime >= 2880) {
+			// Checks if player  has been on the server for a total time of 48 hours,
+			// if so promotes the player to Member+
 
-			if (permission.getPrimaryGroup(player).equals("Builder")) {
+			if (permission.getPrimaryGroup(player).equals("Member")) {
 
-				permission.playerRemoveGroup(null, player, "Builder");
-				permission.playerAddGroup(null, player, "Builder+");
+				permission.playerRemoveGroup(null, player, "Member");
+				permission.playerAddGroup(null, player, "Member+");
 
 				// Informs player of new rank
-				player.sendMessage(Util.formatString("&2You have played for 3 days total, as a reward you have been promoted to Builder+, thanks for continuing to play!"));
+				player.sendMessage(Util.formatString("&2You have played for 48 hours total, as a reward you have been promoted to Member+, Congratulations!"));
 
 				//Broadcasts user rank-up to server chat
 				getServer().broadcastMessage(
 						Util.formatString("&f[&7PlayTimer&f]: "
 								+ ChatColor.DARK_GREEN + player.getName()
-								+ " has just been promoted to Builder+!"));
+								+ " has just been promoted to Member+!"));
 			}
 		}
 
+		if (totalTime >= 4320) {
+			// Checks if player has been on the server for a total time of 72 hours,
+			// if so promotes the player to Experienced
 
+			if (permission.getPrimaryGroup(player).equals("Member+")) {
 
+				permission.playerRemoveGroup(null, player, "Member+");
+				permission.playerAddGroup(null, player, "Experienced");
+
+				// Informs player of new rank
+				player.sendMessage(Util.formatString("&2You have played for 72 hours total, as a reward you have been promoted to Experience, Congratulations!"));
+
+				//Broadcasts user rank-up to server chat
+				getServer().broadcastMessage(
+						Util.formatString("&f[&7PlayTimer&f]: "
+								+ ChatColor.DARK_GREEN + player.getName()
+								+ " has just been promoted to Experienced!"));
+			}
+		}
+
+		if (totalTime >= 9000) {
+			// Checks if player has been on the server for a total time of 150 hours,
+			// if so promotes the player Trusted
+
+			if (permission.getPrimaryGroup(player).equals("Experienced")) {
+
+				permission.playerRemoveGroup(null, player, "Experienced");
+				permission.playerAddGroup(null, player, "Trusted");
+
+				// Informs player of new rank
+				player.sendMessage(Util.formatString("&2You have played for 150 hours total, as a reward you have been promoted to Trusted, Congratulations!"));
+
+				//Broadcasts user rank-up to server chat
+				getServer().broadcastMessage(
+						Util.formatString("&f[&7PlayTimer&f]: "
+								+ ChatColor.DARK_GREEN + player.getName()
+								+ " has just been promoted to Trusted!"));
+			}
+		}
+
+		if (totalTime >= 21000) {
+			// Checks if player has been on the server for a total time of 350 hours,
+			// if so it sends a message to the player and server that they can be nominated for senior
+
+			if (permission.getPrimaryGroup(player).equals("Trusted")) {
+
+				// Informs player of new rank
+				player.sendMessage(Util.formatString("&2You have played for 350 hours total, it is now eligible for people to nominate you to senior "));
+
+				//Broadcasts user rank-up to server chat
+				getServer().broadcastMessage(
+						Util.formatString("&f[&7PlayTimer&f]: "
+								+ ChatColor.DARK_GREEN + player.getName()
+								+ " has reached 350 hours, do you think they're ready for senior? Go nominate them on the website!"));
+			}
+		}
+
+		if (totalTime >= 42000) {
+			// Checks if player has been on the server for a total time of 700 hours and is senior,
+			// if so promotes the player Senior+
+
+			if (permission.getPrimaryGroup(player).equals("Senior")) {
+
+				permission.playerRemoveGroup(null, player, "Senior");
+				permission.playerAddGroup(null, player, "Senior+");
+
+				// Informs player of new rank
+				player.sendMessage(Util.formatString("&2You have played for 700 hours total, as a reward you have been promoted to Senior+, Congratulations!"));
+
+				//Broadcasts user rank-up to server chat
+				getServer().broadcastMessage(
+						Util.formatString("&f[&7PlayTimer&f]: "
+								+ ChatColor.DARK_GREEN + player.getName()
+								+ " has just been promoted to Senior+!"));
+			}
+		}
 	}
 
 
@@ -212,7 +286,7 @@ public class PTMain extends JavaPlugin implements Listener {
 			if (apiObject != null && !apiObject.userExists) {
 				player.sendMessage(Util
 						.formatString("&f[&7PlayTimer&f]: "
-								+ "&6Congratulations! You have played for at least 12 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is register on our forum, go to http://pngn.co/16 to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
+								+ "&6Congratulations! You have played for at least 6 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is register on our forum, go to http://pngn.co/16 to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
 				this.getConfig().set("players." + player.getUniqueId() + ".promotepending", true);
 			}
 		}
