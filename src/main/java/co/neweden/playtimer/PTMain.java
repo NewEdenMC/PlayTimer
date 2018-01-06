@@ -103,7 +103,7 @@ public class PTMain extends JavaPlugin implements Listener {
 			e.printStackTrace(); //prints out SQLException errors to the console (if any)
 		}
 
-		String sql = "CREATE TABLE IF NOT EXIST `playtimer_data`.`users` (" +
+		String sql = "CREATE TABLE IF NOT EXISTS `playtimer_data`.`users` (" +
                 "  `UUID` VARCHAR(64) NOT NULL," +
                 "  `TotalPlaytime` INT UNSIGNED NULL DEFAULT 0," +
                 "  `PlayerName` VARCHAR(64) NULL," +
@@ -117,7 +117,7 @@ public class PTMain extends JavaPlugin implements Listener {
 			// I use executeUpdate() to update the databases table.
 			stmt.executeUpdate();
 		} catch (SQLException e) {
-            e.getStackTrace();
+            e.printStackTrace();
 		}
 
 		// Create default config.yml in the plugins folder
@@ -129,7 +129,7 @@ public class PTMain extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onLogin(PlayerJoinEvent eventLogin) {
 	        boolean newPlayer;
-		if (getUserFromHashMap(eventLogin.getPlayer()) == null){//!this.getConfig().isInt("players." + pID.toString() + ".totaltime")) {
+		if (getUserFromHashMap(eventLogin.getPlayer()) == null){
             newPlayer = true;
 			updatePlayer(eventLogin.getPlayer(),newPlayer);
 			promotePending(eventLogin.getPlayer());
