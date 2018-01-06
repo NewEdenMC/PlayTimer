@@ -1,6 +1,12 @@
 package co.neweden.playtimer;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public final class Util {
 
@@ -34,10 +40,4 @@ public final class Util {
 		return text;
 	}
 
-	public static class PlayerInfo{
-	    UUID uuid;
-        int totalPlaytime;
-        String playerName;
-        boolean promotepending;
-    }
 }
