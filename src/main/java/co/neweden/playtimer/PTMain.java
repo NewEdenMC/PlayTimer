@@ -1,9 +1,6 @@
 package co.neweden.playtimer;
 
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +11,6 @@ import co.neweden.websitelink.User;
 import co.neweden.websitelink.jsonstorage.UserObject;
 
 
-import com.mysql.jdbc.Connection;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.*;
@@ -28,14 +24,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
-
 public class PTMain extends JavaPlugin implements Listener {
-
-
-	// MySQL Database variables
-	final String username = "root";
-	final String password = "A=gc7bjPdDb/3WaXUvi]=";
-	final String url = "jdbc:mysql://localhost:3306/playtimer_data";
 
 	//HashMap to store UserInfo
     static Map<UUID,Util.PlayerInfo> UserMap = new HashMap<>();
@@ -60,9 +49,41 @@ public class PTMain extends JavaPlugin implements Listener {
 	// Plugin enable sends login message and starts a repeating process to
 	// update the config/database
 	public void onEnable() {
-		// Greetings console!
-		getLogger().info("PlayTimer started!");
 		this.saveDefaultConfig();
+
+		String host = getConfig().getString("mysql.host", null);
+		String port = getConfig().getString("mysql.port", null);
+		String database = getConfig().getString("mysql.database", null);
+		if (host == null || port == null || database == null) {
+			getLogger().log(Level.INFO, "No database information received from config.");
+			return;
+		}
+
+		String url = String.format("jdbc:mysql://%s:%s/%s?autoReconnect=true", host, port, database);
+
+		try {
+			connection = DriverManager.getConnection(url, getConfig().getString("mysql.user", ""), getConfig().getString("mysql.password", ""));
+		} catch (SQLException e) { //catching errors)
+			getLogger().log(Level.SEVERE, "An SQL Exception occurred while connecting to database.", e); //prints out SQLException errors to the console (if any)
+			return;
+		}
+
+		String sql = "CREATE TABLE IF NOT EXISTS `users` (" +
+				"  `UUID` VARCHAR(64) NOT NULL," +
+				"  `TotalPlaytime` INT UNSIGNED NULL DEFAULT 0," +
+				"  `PlayerName` VARCHAR(64) NULL," +
+				"  `promotepending` TINYINT NOT NULL DEFAULT 0," +
+				"  PRIMARY KEY (`UUID`)," +
+				"  UNIQUE INDEX `UUID_UNIQUE` (`UUID` ASC)," +
+				"  UNIQUE INDEX `PlayerName_UNIQUE` (`PlayerName` ASC));";
+
+		try {
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			// I use executeUpdate() to update the databases table.
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			getLogger().log(Level.SEVERE, "An SQL Exception occurred while trying to create the database tables.", e);
+		}
 
 		// Setup vault perms
 		setupPermissions();
@@ -87,41 +108,6 @@ public class PTMain extends JavaPlugin implements Listener {
 
 		// Register Events
 		getServer().getPluginManager().registerEvents(this, this);
-
-		// Start MySQL connector
-		try { //We use a try catch to avoid errors, hopefully we don't get any.
-			Class.forName("com.mysql.jdbc.Driver"); //this accesses Driver in jdbc.
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			System.err.println("jdbc driver unavailable!");
-			return;
-		}
-		try { //Another try catch to get any SQL errors (for example connections errors)
-			connection = (Connection) DriverManager.getConnection(url,username,password);
-			//with the method getConnection() from DriverManager, we're trying to set
-			//the connection's url, username, password to the variables we made earlier and
-			//trying to get a connection at the same time. JDBC allows us to do this.
-		} catch (SQLException e) { //catching errors)
-			getLogger().log(Level.SEVERE, "An SQL Exception occurred while connecting to database.", e); //prints out SQLException errors to the console (if any)
-			return;
-		}
-
-		String sql = "CREATE TABLE IF NOT EXISTS `users` (" +
-                "  `UUID` VARCHAR(64) NOT NULL," +
-                "  `TotalPlaytime` INT UNSIGNED NULL DEFAULT 0," +
-                "  `PlayerName` VARCHAR(64) NULL," +
-                "  `promotepending` TINYINT NOT NULL DEFAULT 0," +
-                "  PRIMARY KEY (`UUID`)," +
-                "  UNIQUE INDEX `UUID_UNIQUE` (`UUID` ASC)," +
-                "  UNIQUE INDEX `PlayerName_UNIQUE` (`PlayerName` ASC));";
-
-		try {
-			PreparedStatement stmt = connection.prepareStatement(sql);
-			// I use executeUpdate() to update the databases table.
-			stmt.executeUpdate();
-		} catch (SQLException e) {
-            getLogger().log(Level.SEVERE, "An SQL Exception occurred while trying to create the database tables.", e);
-		}
 
         getPlayersInfoFromDB();
 
