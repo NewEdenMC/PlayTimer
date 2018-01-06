@@ -103,11 +103,11 @@ public class PTMain extends JavaPlugin implements Listener {
 			e.printStackTrace(); //prints out SQLException errors to the console (if any)
 		}
 
-		String sql = "CREATE TABLE `playtimer_data`.`users` (" +
+		String sql = "CREATE TABLE IF NOT EXIST `playtimer_data`.`users` (" +
                 "  `UUID` VARCHAR(64) NOT NULL," +
                 "  `TotalPlaytime` INT UNSIGNED NULL DEFAULT 0," +
                 "  `PlayerName` VARCHAR(64) NULL," +
-                "  `promotepending` TINYINT NULL," +
+                "  `promotepending` TINYINT NOT NULL DEFAULT 0," +
                 "  PRIMARY KEY (`UUID`)," +
                 "  UNIQUE INDEX `UUID_UNIQUE` (`UUID` ASC)," +
                 "  UNIQUE INDEX `PlayerName_UNIQUE` (`PlayerName` ASC));";
@@ -117,46 +117,57 @@ public class PTMain extends JavaPlugin implements Listener {
 			// I use executeUpdate() to update the databases table.
 			stmt.executeUpdate();
 		} catch (SQLException e) {
-			e.printStackTrace();
+            e.getStackTrace();
 		}
 
 		// Create default config.yml in the plugins folder
 		this.saveDefaultConfig();
+        getPlayersInfoFromDB();
 
 	}
 
 	@EventHandler
 	public void onLogin(PlayerJoinEvent eventLogin) {
-		// Get user UUID and write it into the config file
-		UUID pID = eventLogin.getPlayer().getUniqueId();
-
-		if (!this.getConfig().isInt("players." + pID.toString() + ".totaltime")) {
-			updatePlayer(eventLogin.getPlayer());
+	        boolean newPlayer;
+		if (getUserFromHashMap(eventLogin.getPlayer()) == null){//!this.getConfig().isInt("players." + pID.toString() + ".totaltime")) {
+            newPlayer = true;
+			updatePlayer(eventLogin.getPlayer(),newPlayer);
 			promotePending(eventLogin.getPlayer());
 		}
-
-
-
 	}
 
 	// Player time updater and rank increaser
-	public void updatePlayer(Player player) {
-		int totalTime;
-		try {
-			totalTime = this.getConfig().getInt(
-					"players." + player.getUniqueId() + ".totaltime");
-		} catch (NullPointerException e) {
-			totalTime = 0;
-		}
-
-		this.getConfig().set("players." + player.getUniqueId() + ".totaltime",
-				totalTime + 1);
-		this.getConfig().set("players." + player.getUniqueId() + ".playername", player.getName());
-		this.getConfig().set("players." + player.getUniqueId() + ".promotepending", false);
-		this.saveConfig();
-
+	public void updatePlayer(Player player, boolean newPlayer) {
         Util.PlayerInfo userInfo = getUserFromHashMap(player);
+        int totalTime = userInfo.totalPlaytime;
 
+        String sql =
+                "INSERT INTO `users` (`UUID`, `TotalPlaytime`, `PlayerName`, `promotepending`) VALUES (?, ?, ?, ?)" +
+                " ON DUPLICATE KEY " +
+                "UPDATE `TotalPlaytime` = ?, `promotepending` = ?";
+        try {
+
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, player.getUniqueId().toString());
+            stmt.setInt(2, 1);
+            stmt.setString(3, player.getDisplayName());
+            stmt.setBoolean(4, false);
+            stmt.setInt(5, ++totalTime);
+            stmt.setBoolean(6,userInfo.promotepending);
+            stmt.executeUpdate();
+
+            //Checks if user was added previously in the hashmap
+            if(!UserMap.containsKey(player.getUniqueId())){
+                updatePlayerInfo(player,1,false);
+                ++totalTime;
+            } else {
+                updatePlayerInfo(player,totalTime,false);
+                ++totalTime;
+            }
+
+        } catch (SQLException e) {
+            getLogger().info("Could not query the user \n" + e);
+        }
 
 		if (totalTime >= 360) {
 			// Check if newcomer has registered and reached 6 hours, if yes promote to Member, message player and
@@ -170,9 +181,9 @@ public class PTMain extends JavaPlugin implements Listener {
 
 				// Checks if the user exists on the forums and gives a
 				// registration link if they don't
-				if (getConfig().getBoolean("players." + player.getUniqueId() + ".promotepending", true)) {
+				if (userInfo.promotepending) {
 
-					getLogger().info("Tried to promote " + player.getName());
+					getLogger().info("Tried to promote " + userInfo.playerName);
 
 					permission.playerRemoveGroup(null, player, "Newcomer");
 					permission.playerAddGroup(null, player, "Member");
@@ -188,7 +199,7 @@ public class PTMain extends JavaPlugin implements Listener {
 					// Broadcasts user rank-up for all online players to see
 					getServer().broadcastMessage(
 							Util.formatString("&f[&7PlayTimer&f]: "
-									+ ChatColor.DARK_GREEN + player.getName()
+									+ ChatColor.DARK_GREEN + userInfo.playerName
 									+ " has just been promoted to Member!"));
 				}
 			}
@@ -209,7 +220,7 @@ public class PTMain extends JavaPlugin implements Listener {
 				//Broadcasts user rank-up to server chat
 				getServer().broadcastMessage(
 						Util.formatString("&f[&7PlayTimer&f]: "
-								+ ChatColor.DARK_GREEN + player.getName()
+								+ ChatColor.DARK_GREEN + userInfo.playerName
 								+ " has just been promoted to Member+!"));
 			}
 		}
@@ -229,7 +240,7 @@ public class PTMain extends JavaPlugin implements Listener {
 				//Broadcasts user rank-up to server chat
 				getServer().broadcastMessage(
 						Util.formatString("&f[&7PlayTimer&f]: "
-								+ ChatColor.DARK_GREEN + player.getName()
+								+ ChatColor.DARK_GREEN + userInfo.playerName
 								+ " has just been promoted to Experienced!"));
 			}
 		}
@@ -249,7 +260,7 @@ public class PTMain extends JavaPlugin implements Listener {
 				//Broadcasts user rank-up to server chat
 				getServer().broadcastMessage(
 						Util.formatString("&f[&7PlayTimer&f]: "
-								+ ChatColor.DARK_GREEN + player.getName()
+								+ ChatColor.DARK_GREEN + userInfo.playerName
 								+ " has just been promoted to Trusted!"));
 			}
 		}
@@ -266,7 +277,7 @@ public class PTMain extends JavaPlugin implements Listener {
 				//Broadcasts user rank-up to server chat
 				getServer().broadcastMessage(
 						Util.formatString("&f[&7PlayTimer&f]: "
-								+ ChatColor.DARK_GREEN + player.getName()
+								+ ChatColor.DARK_GREEN + userInfo.playerName
 								+ " has reached 350 hours, do you think they're ready for senior? Go nominate them on the website!"));
 			}
 		}
@@ -286,7 +297,7 @@ public class PTMain extends JavaPlugin implements Listener {
 				//Broadcasts user rank-up to server chat
 				getServer().broadcastMessage(
 						Util.formatString("&f[&7PlayTimer&f]: "
-								+ ChatColor.DARK_GREEN + player.getName()
+								+ ChatColor.DARK_GREEN + userInfo.playerName
 								+ " has just been promoted to Senior+!"));
 			}
 		}
@@ -313,18 +324,45 @@ public class PTMain extends JavaPlugin implements Listener {
     }
 
     public Util.PlayerInfo getUserFromHashMap(Player player) {
-        return UserMap.get(player.getUniqueId());
+        //Checks if user was added previously in the hashmap
+        if(!UserMap.containsKey(player.getUniqueId())){
+            Util.PlayerInfo userInfo = new Util.PlayerInfo();
+            userInfo.uuid = player.getUniqueId();
+            userInfo.totalPlaytime = 0;
+            userInfo.playerName = player.getDisplayName();
+            userInfo.promotepending = false;
+            return userInfo;
+        } else {
+            return UserMap.get(player.getUniqueId());
+        }
+    }
+
+    public void updatePlayerInfo(Player player,int playtime, boolean promotepending){
+        Util.PlayerInfo userInfo = getUserFromHashMap(player);
+        Util.PlayerInfo addUser = new Util.PlayerInfo();
+        //Checks if user was added previously in the hashmap
+        if(playtime > 1 && !promotepending) {
+            UserMap.remove(player.getUniqueId());
+            addUser.promotepending = userInfo.promotepending;
+        }
+        else addUser.promotepending = promotepending;
+
+        addUser.uuid = player.getUniqueId();
+        addUser.totalPlaytime = playtime;
+        addUser.playerName = player.getDisplayName();
+        UserMap.put(addUser.uuid, addUser);
     }
 
     // Checks to see if the player has a promotion pending and reminds them that they need to register on the forums
 	public void promotePending(Player player) {
-		if (this.getConfig().getBoolean("players." + player.getUniqueId() + ".promotepending", false)) {
+        Util.PlayerInfo userInfo = getUserFromHashMap(player);
+		if (!userInfo.promotepending) {
 			UserObject apiObject = User.getUser(player);
 			if (apiObject != null && !apiObject.userExists) {
 				player.sendMessage(Util
 						.formatString("&f[&7PlayTimer&f]: "
 								+ "&6Congratulations! You have played for at least 6 hours, this means you are eligible to be promoted to from Explorer to Builder, all you need to do now is register on our forum, go to http://pngn.co/16 to get started. Remember to register using your Minecraft username, otherwise you won't get promoted!"));
-				this.getConfig().set("players." + player.getUniqueId() + ".promotepending", true);
+                updatePlayerInfo(player,userInfo.totalPlaytime,true);
 			}
 		}
 	}
@@ -333,7 +371,7 @@ public class PTMain extends JavaPlugin implements Listener {
 	public void updateAllPlayers() {
 		// listPlayers refers to the player list
 		for (Player listPlayers : getServer().getOnlinePlayers()) {
-			updatePlayer(listPlayers);
+			updatePlayer(listPlayers,false);
 		}
 	}
 
@@ -344,7 +382,7 @@ public class PTMain extends JavaPlugin implements Listener {
 		}
 	}
 
-	// Commands used ingame
+	// Commands used in-game
 	public boolean onCommand(CommandSender sender, Command cmd, String label,
 			String[] args) {
 
@@ -353,9 +391,8 @@ public class PTMain extends JavaPlugin implements Listener {
 				if (args.length == 0) {
 					if (sender instanceof Player) {
 						Player player = (Player) sender;
-						int pT = this.getConfig().getInt(
-								"players." + player.getUniqueId()
-										+ ".totaltime");
+                        Util.PlayerInfo userInfo = getUserFromHashMap(player);
+						int pT = userInfo.totalPlaytime;
 
 						int pDays = 0;
 						double pHours = Math.floor(pT / 60);
@@ -375,19 +412,16 @@ public class PTMain extends JavaPlugin implements Listener {
 					} else {
 						@SuppressWarnings("deprecation")
 						OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-						String uName = this.getConfig().getString(
-								"players." + target.getUniqueId()
-										+ ".playername");
+                        Util.PlayerInfo targetInfo = getUserFromHashMap(target.getPlayer());
+						String uName = targetInfo.playerName;
 
-						if (uName == null) {
+						if (targetInfo.totalPlaytime == 0 || targetInfo == null) {
 							sender.sendMessage(ChatColor.GOLD
 									+ "No user under that name.");
 						}
 
 						else {
-							int uT = this.getConfig().getInt(
-									"players." + target.getUniqueId()
-											+ ".totaltime");
+							int uT = targetInfo.totalPlaytime;
 							double uHours = Math.floor(uT / 60);
 							int uMinutes = uT % 60;
 
