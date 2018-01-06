@@ -2,8 +2,11 @@ package co.neweden.playtimer;
 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import co.neweden.websitelink.User;
@@ -13,9 +16,7 @@ import co.neweden.websitelink.jsonstorage.UserObject;
 import com.mysql.jdbc.Connection;
 import net.milkbowl.vault.permission.Permission;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -34,6 +35,9 @@ public class PTMain extends JavaPlugin implements Listener {
 	final String username = "root";
 	final String password = "A=gc7bjPdDb/3WaXUvi]=";
 	final String url = "jdbc:mysql://localhost:3306/playtimer_data";
+
+	//HashMap to store UserInfo
+    static Map<UUID,Util.PlayerInfo> UserMap = new HashMap<>();
 
 	//Connection Variables
 	static Connection connection;
@@ -150,6 +154,9 @@ public class PTMain extends JavaPlugin implements Listener {
 		this.getConfig().set("players." + player.getUniqueId() + ".playername", player.getName());
 		this.getConfig().set("players." + player.getUniqueId() + ".promotepending", false);
 		this.saveConfig();
+
+        Util.PlayerInfo userInfo = getUserFromHashMap(player);
+
 
 		if (totalTime >= 360) {
 			// Check if newcomer has registered and reached 6 hours, if yes promote to Member, message player and
@@ -285,8 +292,31 @@ public class PTMain extends JavaPlugin implements Listener {
 		}
 	}
 
+    private void getPlayersInfoFromDB() {
+	    String sql = "SELECT * FROM `users`";
 
-	// Checks to see if the player has a promotion pending and reminds them that they need to register on the forums
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Util.PlayerInfo userInfo = new Util.PlayerInfo();
+                userInfo.uuid = UUID.fromString(rs.getString("UUID"));
+                userInfo.totalPlaytime = rs.getInt("TotalPlaytime");
+                userInfo.playerName = rs.getString("PlayerName");
+                userInfo.promotepending = rs.getBoolean("promotepending");
+                UserMap.put(userInfo.uuid, userInfo);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Util.PlayerInfo getUserFromHashMap(Player player) {
+        return UserMap.get(player.getUniqueId());
+    }
+
+    // Checks to see if the player has a promotion pending and reminds them that they need to register on the forums
 	public void promotePending(Player player) {
 		if (this.getConfig().getBoolean("players." + player.getUniqueId() + ".promotepending", false)) {
 			UserObject apiObject = User.getUser(player);
