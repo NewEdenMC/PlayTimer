@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import co.neweden.websitelink.User;
 import co.neweden.websitelink.jsonstorage.UserObject;
@@ -61,6 +62,7 @@ public class PTMain extends JavaPlugin implements Listener {
 	public void onEnable() {
 		// Greetings console!
 		getLogger().info("PlayTimer started!");
+		this.saveDefaultConfig();
 
 		// Setup vault perms
 		setupPermissions();
@@ -100,10 +102,11 @@ public class PTMain extends JavaPlugin implements Listener {
 			//the connection's url, username, password to the variables we made earlier and
 			//trying to get a connection at the same time. JDBC allows us to do this.
 		} catch (SQLException e) { //catching errors)
-			e.printStackTrace(); //prints out SQLException errors to the console (if any)
+			getLogger().log(Level.SEVERE, "An SQL Exception occurred while connecting to database.", e); //prints out SQLException errors to the console (if any)
+			return;
 		}
 
-		String sql = "CREATE TABLE IF NOT EXISTS `playtimer_data`.`users` (" +
+		String sql = "CREATE TABLE IF NOT EXISTS `users` (" +
                 "  `UUID` VARCHAR(64) NOT NULL," +
                 "  `TotalPlaytime` INT UNSIGNED NULL DEFAULT 0," +
                 "  `PlayerName` VARCHAR(64) NULL," +
@@ -117,11 +120,9 @@ public class PTMain extends JavaPlugin implements Listener {
 			// I use executeUpdate() to update the databases table.
 			stmt.executeUpdate();
 		} catch (SQLException e) {
-            e.printStackTrace();
+            getLogger().log(Level.SEVERE, "An SQL Exception occurred while trying to create the database tables.", e);
 		}
 
-		// Create default config.yml in the plugins folder
-		this.saveDefaultConfig();
         getPlayersInfoFromDB();
 
 	}
@@ -166,7 +167,7 @@ public class PTMain extends JavaPlugin implements Listener {
             }
 
         } catch (SQLException e) {
-            getLogger().info("Could not query the user \n" + e);
+            getLogger().log(Level.SEVERE, "Could not query the user", e);
         }
 
 		if (totalTime >= 360) {
@@ -319,7 +320,7 @@ public class PTMain extends JavaPlugin implements Listener {
                 UserMap.put(userInfo.uuid, userInfo);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+        	getLogger().log(Level.SEVERE, "An SQL Exception occurred while player info from Database");
         }
     }
 
