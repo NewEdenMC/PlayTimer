@@ -99,7 +99,14 @@ public class PTMain extends JavaPlugin implements Listener {
 			e.printStackTrace(); //prints out SQLException errors to the console (if any)
 		}
 
-		String sql = "CREATE TABLE IF NOT EXISTS users(User varchar(64));";
+		String sql = "CREATE TABLE `playtimer_data`.`users` (" +
+                "  `UUID` VARCHAR(64) NOT NULL," +
+                "  `TotalPlaytime` INT UNSIGNED NULL DEFAULT 0," +
+                "  `PlayerName` VARCHAR(64) NULL," +
+                "  `promotepending` TINYINT NULL," +
+                "  PRIMARY KEY (`UUID`)," +
+                "  UNIQUE INDEX `UUID_UNIQUE` (`UUID` ASC)," +
+                "  UNIQUE INDEX `PlayerName_UNIQUE` (`PlayerName` ASC));";
 
 		try {
 			PreparedStatement stmt = connection.prepareStatement(sql);
