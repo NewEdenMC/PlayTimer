@@ -31,7 +31,7 @@ public class PlayerInfo {
     public boolean incrementPlayTime() { return incrementPlayTime(1); }
     public boolean incrementPlayTime(int amount) {
         try {
-            PreparedStatement stmt = PTMain.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`) VALUES (?, ?, ?)" +
+            PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`) VALUES (?, ?, ?)" +
                     " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + 1");
             stmt.setString(1, uuid.toString());
             stmt.setInt(2, amount);
@@ -40,7 +40,7 @@ public class PlayerInfo {
             totalPlaytime++;
             return true;
         } catch (SQLException e) {
-            PTMain.plugin.getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
+            Main.plugin.getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
         }
         return false;
     }
@@ -49,7 +49,7 @@ public class PlayerInfo {
 
     public boolean setPromotePending(boolean isPending) {
         try {
-            PreparedStatement stmt = PTMain.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`) VALUES (?, ?, ?)" +
+            PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`) VALUES (?, ?, ?)" +
                     " ON DUPLICATE KEY UPDATE `promotepending` = ?");
             stmt.setString(1, uuid.toString());
             stmt.setInt(2, 1);
@@ -59,7 +59,7 @@ public class PlayerInfo {
             promotepending = isPending;
             return true;
         } catch (SQLException e) {
-            PTMain.plugin.getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
+            Main.plugin.getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
         }
         return false;
     }

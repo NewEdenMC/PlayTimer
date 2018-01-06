@@ -23,14 +23,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class PTMain extends JavaPlugin implements Listener {
+public class Main extends JavaPlugin implements Listener {
 
 	//HashMap to store UserInfo
     static Map<UUID,PlayerInfo> UserMap = new HashMap<>();
 
 	//Connection Variables
 	static Connection connection;
-	static PTMain plugin;
+	static Main plugin;
 
 	public static Permission permission = null;
 
@@ -44,8 +44,6 @@ public class PTMain extends JavaPlugin implements Listener {
 		return (permission != null);
 	}
 
-	// Plugin enable sends login message and starts a repeating process to
-	// update the config/database
 	public void onEnable() {
 		plugin = this;
 		this.saveDefaultConfig();
@@ -85,8 +83,19 @@ public class PTMain extends JavaPlugin implements Listener {
 
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> updateAllPlayers(), 0L, 1200L);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> checkPromotePending(), 0L, 36000L);
+		Bukkit.getPluginManager().registerEvents(this, this);
+	}
 
-		getServer().getPluginManager().registerEvents(this, this);
+	public void onDisable() {
+		try {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		} catch(Exception e) {
+			getLogger().log(Level.SEVERE, "Unable to close SQL Connection.", e);
+		}
+		UserMap.clear();
+		Bukkit.getScheduler().cancelTasks(this);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -236,77 +245,71 @@ public class PTMain extends JavaPlugin implements Listener {
 		}
 	}
 
-	// Commands used in-game
-	public boolean onCommand(CommandSender sender, Command cmd, String label,
-			String[] args) {
-
-		if (label.equalsIgnoreCase("playtime")) {
-			if (sender.hasPermission("playtimer.use")) {
-				if (args.length == 0) {
-					if (sender instanceof Player) {
-						Player player = (Player) sender;
-                        PlayerInfo userInfo = getUser(player.getUniqueId());
-						int pT = userInfo.getTotalPlayTime();
-
-						double pHours = Math.floor(pT / 60);
-						int pMinutes = pT % 60;
-
-						sender.sendMessage(ChatColor.GOLD + "Your playtime: "
-								+ ChatColor.DARK_GREEN + (int) pHours
-								+ " Hours" + " " + pMinutes + " Minutes");
-					}
-					return true;
-				} else {
-					if (args[0].equalsIgnoreCase("zero")) {
-						sender.sendMessage(ChatColor.GOLD + "Your playtime: "
-								+ ChatColor.DARK_GREEN
-								+ "Doomworks is an idiot.");
-						return true;
-					} else {
-						@SuppressWarnings("deprecation")
-						OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-                        PlayerInfo targetInfo = getUser(target.getPlayer().getUniqueId());
-						String uName = targetInfo.getPlayerName();
-
-						if (targetInfo.getTotalPlayTime() == 0) {
-							sender.sendMessage(ChatColor.GOLD
-									+ "No user under that name.");
-						}
-
-						else {
-							int uT = targetInfo.getTotalPlayTime();
-							double uHours = Math.floor(uT / 60);
-							int uMinutes = uT % 60;
-
-							sender.sendMessage(ChatColor.GOLD + uName
-									+ " playtime: " + ChatColor.DARK_GREEN
-									+ (int) uHours + " Hours" + " " + uMinutes
-									+ " Minutes");
-							return true;
-						}
-					}
-
-				}
-			} else {
-				sender.sendMessage("You do not have permission to use that.");
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (args.length == 0) {
+			if (!(sender instanceof Player)) {
+				sender.sendMessage("Only players can check their play time, to check the play time of someone else run this command followed by their name.");
+				return true;
 			}
+
+			Player player = (Player) sender;
+			PlayerInfo userInfo = getUser(player.getUniqueId());
+			int pT = userInfo.getTotalPlayTime();
+
+			double pHours = Math.floor(pT / 60);
+			int pMinutes = pT % 60;
+
+			sender.sendMessage(ChatColor.GOLD + "Your playtime: "
+					+ ChatColor.DARK_GREEN + (int) pHours
+					+ " Hours" + " " + pMinutes + " Minutes");
+			return true;
+		}
+
+		if (args[0].equalsIgnoreCase("reload")) {
+			if (!sender.hasPermission("playtimer.reload")) {
+				sender.sendMessage("You do not have permission to run this sub-command.");
+				return true;
+			}
+			onDisable();
+			onEnable();
+			sender.sendMessage("Plugin reloaded");
+			return true;
+		}
+
+		if (args[0].equalsIgnoreCase("zero")) {
+			sender.sendMessage(ChatColor.GOLD + "Your playtime: "
+					+ ChatColor.DARK_GREEN
+					+ "Doomworks is an idiot.");
+			return true;
+		}
+
+		OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+		if (target == null) {
+			sender.sendMessage(ChatColor.RED + "This player has not connected to the server before.");
+			return true;
+		}
+
+		PlayerInfo targetInfo = getUser(target.getUniqueId());
+		String uName = targetInfo.getPlayerName();
+
+		if (targetInfo.getTotalPlayTime() == 0) {
+			sender.sendMessage(ChatColor.GOLD
+					+ "No user under that name.");
+		}
+
+		else {
+			int uT = targetInfo.getTotalPlayTime();
+			double uHours = Math.floor(uT / 60);
+			int uMinutes = uT % 60;
+
+			sender.sendMessage(ChatColor.GOLD + uName
+					+ " playtime: " + ChatColor.DARK_GREEN
+					+ (int) uHours + " Hours" + " " + uMinutes
+					+ " Minutes");
+			return true;
 		}
 
 		return false;
-	}
-
-	// Plugin disable, shuts down the database connection and ends the process
-	public void onDisable() {
-		try { //using a try catch to catch connection errors (like wrong sql password...)
-			if (connection!=null && !connection.isClosed()){ //checking if connection isn't null to
-				//avoid receiving a nullpointer
-				connection.close(); //closing the connection field variable.
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-
-		getLogger().info("PlayTimer stopped!");
 	}
 
 }

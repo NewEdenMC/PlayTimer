@@ -1,20 +1,21 @@
 name: ${artifactId}
 version: ${version}
 author: Doomworks
-main: co.neweden.playtimer.PTMain
-depend: [WebsiteLink]
+main: co.neweden.playtimer.Main
+depend: [WebsiteLink, Vault]
 
 commands:
   playtime:
     description: Shows the users total play time.
     permission: playtimer.use
-    permission-message: You don't have permission to use this.
-    depend: [Vault]
 permissions:
   playtimer.*:
     description: Gives access to all PlayerTimer permission nodes
     default: op
     children:
       playtimer.use: true
+      playtimer.reload: true
   playtimer.use:
     description: Gives access to basic PTMain functions.
+  playtimer.reload:
+    description: Gives access to reload sub-command to reload plugin
