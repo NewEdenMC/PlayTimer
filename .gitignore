@@ -39,3 +39,5 @@ export.jardesc
 # IntelliJ Stuff
 .idea
 *.iml
+/target/
+META-INF

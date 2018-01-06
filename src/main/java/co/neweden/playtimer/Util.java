@@ -1,5 +1,7 @@
 package co.neweden.playtimer;
 
+import java.util.UUID;
+
 public final class Util {
 
 	private Util() {
@@ -32,4 +34,10 @@ public final class Util {
 		return text;
 	}
 
+	public static class PlayerInfo{
+	    UUID uuid;
+        int totalPlaytime;
+        String playerName;
+        boolean promotepending;
+    }
 }
