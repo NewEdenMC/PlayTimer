@@ -10,10 +10,14 @@ import java.util.logging.Level;
 
 public class PlayerInfo {
 
+    private static Main plugin;
+    PlayerInfo(Main pl){plugin = pl;}
+
     private UUID uuid;
     private String playerName;
     private int totalPlaytime;
     private boolean promotepending;
+
 
     PlayerInfo(UUID uuid, int totalTime, boolean promotePending) {
         this.uuid = uuid;
@@ -30,12 +34,14 @@ public class PlayerInfo {
 
     public boolean incrementPlayTime() { return incrementPlayTime(1); }
     public boolean incrementPlayTime(int amount) {
+        String serverName = plugin.getConfig().getString("servername", "survival");
         try {
-            PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`) VALUES (?, ?, ?)" +
-                    " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + 1");
+            PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`, `server_" + serverName + "`) VALUES (?, ?, ?, ?)" +
+                    " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + 1, `server_" + serverName + "` = server_" + serverName + " + 1;");
             stmt.setString(1, uuid.toString());
             stmt.setInt(2, amount);
             stmt.setBoolean(3, false);
+            stmt.setInt(4, amount);
             stmt.executeUpdate();
             totalPlaytime++;
             return true;

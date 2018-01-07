@@ -28,6 +28,8 @@ public class Main extends JavaPlugin implements Listener {
 	//HashMap to store UserInfo
     static Map<UUID,PlayerInfo> UserMap = new HashMap<>();
 
+    public String serverName = getConfig().getString("servername", "survival");
+
 	//Connection Variables
 	static Connection connection;
 	static Main plugin;
@@ -46,7 +48,12 @@ public class Main extends JavaPlugin implements Listener {
 
 	public void onEnable() {
 		plugin = this;
-		this.saveDefaultConfig();
+        this.saveDefaultConfig();
+
+        plugin.getLogger().info("This Server name is: server_"+serverName);
+
+		MoveConfig mvc = new MoveConfig(this); //Remove this after first use
+        PlayerInfo pli = new PlayerInfo(this);
 
 		String host = getConfig().getString("mysql.host", null);
 		String port = getConfig().getString("mysql.port", null);
@@ -84,6 +91,9 @@ public class Main extends JavaPlugin implements Listener {
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> updateAllPlayers(), 0L, 1200L);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> checkPromotePending(), 0L, 36000L);
 		Bukkit.getPluginManager().registerEvents(this, this);
+
+        checkTable();
+		MoveConfig.getConfigAndUpdate(); //Remove this after first use
 	}
 
 	public void onDisable() {
@@ -95,6 +105,7 @@ public class Main extends JavaPlugin implements Listener {
 			getLogger().log(Level.SEVERE, "Unable to close SQL Connection.", e);
 		}
 		UserMap.clear();
+		serverName = null;
 		Bukkit.getScheduler().cancelTasks(this);
 	}
 
@@ -244,6 +255,16 @@ public class Main extends JavaPlugin implements Listener {
 			checkSendPromoteMessage(player, playerInfo);
 		}
 	}
+
+	public void checkTable(){
+        try {
+                connection.createStatement().execute("ALTER TABLE `users` ADD COLUMN `server_" + serverName + "` VARCHAR(45) NOT NULL DEFAULT 0;");
+        } catch (SQLException e) {
+            if   (!e.getSQLState().equals("42S21")) {
+                getLogger().log(Level.SEVERE, "An SQL Exception occurred while trying to add the ServerName Column", e);
+            }
+        }
+    }
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (args.length == 0) {

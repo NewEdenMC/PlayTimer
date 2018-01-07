@@ -4,3 +4,6 @@ mysql:
    database: playtimer
    user: mc
    password:
+
+servername: survival
+moveconfig: true
