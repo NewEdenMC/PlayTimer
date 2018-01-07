@@ -96,7 +96,7 @@ public class Main extends JavaPlugin implements Listener {
 		Bukkit.getPluginManager().registerEvents(this, this);
 
         checkTable();
-		MoveConfig.getConfigAndUpdate(); //Remove this after first use
+		//MoveConfig.getConfigAndUpdate(); //Remove this after first use
 	}
 
 	public void onDisable() {

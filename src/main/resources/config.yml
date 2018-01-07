@@ -6,4 +6,4 @@ mysql:
    password:
 
 servername: survival
-moveconfig: true
+moveconfig: false
