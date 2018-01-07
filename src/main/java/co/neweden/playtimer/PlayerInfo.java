@@ -37,11 +37,13 @@ public class PlayerInfo {
         String serverName = plugin.getConfig().getString("servername", "survival");
         try {
             PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`, `server_" + serverName + "`) VALUES (?, ?, ?, ?)" +
-                    " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + 1, `server_" + serverName + "` = server_" + serverName + " + 1;");
+                    " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + ?, `server_" + serverName + "` = server_" + serverName + " + ?;");
             stmt.setString(1, uuid.toString());
             stmt.setInt(2, amount);
             stmt.setBoolean(3, false);
             stmt.setInt(4, amount);
+            stmt.setInt(5, amount);
+            stmt.setInt(6, amount);
             stmt.executeUpdate();
             totalPlaytime++;
             return true;
