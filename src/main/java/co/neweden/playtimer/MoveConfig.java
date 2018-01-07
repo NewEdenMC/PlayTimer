@@ -9,11 +9,8 @@ import java.sql.SQLException;
 
 public class MoveConfig {
 
-    private static Main plugin;
-    MoveConfig(Main pl){plugin = pl;}
-
-    public static void getConfigAndUpdate(){
-        Configuration config = plugin.getConfig();
+    public static void getConfigAndUpdate() {
+        Configuration config = Main.getPlugin().getConfig();
         boolean allowConfigMovement = config.getBoolean("moveconfig");
         if (allowConfigMovement) {
             ConfigurationSection playersConfig = config.getConfigurationSection("players");
@@ -21,14 +18,14 @@ public class MoveConfig {
                 int totalTime = playersConfig.getInt(uuid + ".totaltime");
                 addConfigToDatabase(uuid, totalTime);
             }
-            plugin.getLogger().info("Config has been moved");
-        } else {plugin.getLogger().info("`moveconfig` has been set to false in the Config !!!");}
+            Main.getPlugin().getLogger().info("Config has been moved");
+        } else Main.getPlugin().getLogger().info("`moveconfig` has been set to false in the Config !!!");
     }
 
     private static void addConfigToDatabase(String uuid, int TotalPlayTime){
-        String serverName = plugin.getConfig().getString("servername", "survival");
-        String sql = "INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`, `server_" + serverName + "`) VALUES (?, ?, ?, ?)" +
-                " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + ?, `server_" + serverName + "` = ?;";
+        String dbServerName = "server_" + Main.getCurrentServerName();
+        String sql = "INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`, `" + dbServerName + "`) VALUES (?, ?, ?, ?)" +
+                " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + ?, `" + dbServerName + "` = ?;";
         try {
             PreparedStatement stmt = Main.connection.prepareStatement(sql);
             stmt.setString(1, uuid);

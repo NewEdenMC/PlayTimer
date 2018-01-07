@@ -10,14 +10,10 @@ import java.util.logging.Level;
 
 public class PlayerInfo {
 
-    private static Main plugin;
-    PlayerInfo(Main pl){plugin = pl;}
-
     private UUID uuid;
     private String playerName;
     private int totalPlaytime;
     private boolean promotepending;
-
 
     PlayerInfo(UUID uuid, int totalTime, boolean promotePending) {
         this.uuid = uuid;
@@ -33,11 +29,12 @@ public class PlayerInfo {
     public int getTotalPlayTime() { return totalPlaytime; }
 
     public boolean incrementPlayTime() { return incrementPlayTime(1); }
+
     public boolean incrementPlayTime(int amount) {
-        String serverName = plugin.getConfig().getString("servername", "survival");
+        String dbServerName = "server_" + Main.getCurrentServerName();
         try {
-            PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`, `server_" + serverName + "`) VALUES (?, ?, ?, ?)" +
-                    " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + ?, `server_" + serverName + "` = server_" + serverName + " + ?;");
+            PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`, `" + dbServerName + "`) VALUES (?, ?, ?, ?)" +
+                    " ON DUPLICATE KEY UPDATE `TotalPlaytime` = TotalPlaytime + ?, `" + dbServerName + "` = " + dbServerName + " + ?;");
             stmt.setString(1, uuid.toString());
             stmt.setInt(2, amount);
             stmt.setBoolean(3, false);
@@ -48,7 +45,7 @@ public class PlayerInfo {
             totalPlaytime++;
             return true;
         } catch (SQLException e) {
-            Main.plugin.getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
+            Main.getPlugin().getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
         }
         return false;
     }
@@ -67,7 +64,7 @@ public class PlayerInfo {
             promotepending = isPending;
             return true;
         } catch (SQLException e) {
-            Main.plugin.getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
+            Main.getPlugin().getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
         }
         return false;
     }

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import co.neweden.websitelink.User;
 import co.neweden.websitelink.jsonstorage.UserObject;
@@ -28,11 +29,15 @@ public class Main extends JavaPlugin implements Listener {
 	//HashMap to store UserInfo
     static Map<UUID,PlayerInfo> UserMap = new HashMap<>();
 
-    public String serverName = getConfig().getString("servername", "survival");
+    private static String serverName;
 
 	//Connection Variables
 	static Connection connection;
-	static Main plugin;
+	private static Main plugin;
+
+	public static Main getPlugin() { return plugin; }
+
+	public static String getCurrentServerName() { return serverName; }
 
 	public static Permission permission = null;
 
@@ -49,11 +54,9 @@ public class Main extends JavaPlugin implements Listener {
 	public void onEnable() {
 		plugin = this;
         this.saveDefaultConfig();
+        serverName = getConfig().getString("servername", "survival");
 
         plugin.getLogger().info("This Server name is: server_"+serverName);
-
-		MoveConfig mvc = new MoveConfig(this); //Remove this after first use
-        PlayerInfo pli = new PlayerInfo(this);
 
 		String host = getConfig().getString("mysql.host", null);
 		String port = getConfig().getString("mysql.port", null);
