@@ -295,6 +295,7 @@ public class Main extends JavaPlugin implements Listener {
 				return true;
 			}
 			onDisable();
+			reloadConfig();
 			onEnable();
 			sender.sendMessage("Plugin reloaded");
 			return true;
