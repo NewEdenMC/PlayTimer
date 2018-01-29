@@ -81,6 +81,7 @@ public class Main extends JavaPlugin implements Listener {
 					"  `UUID` VARCHAR(64) NOT NULL," +
 					"  `TotalPlaytime` INT UNSIGNED NULL DEFAULT 0," +
 					"  `promotepending` TINYINT NOT NULL DEFAULT 0," +
+					"  `seniorNominationMsgSent` TINYINT NOT NULL DEFAULT 0," +
 					"  PRIMARY KEY (`UUID`)" +
 					");"
 			);
@@ -191,8 +192,11 @@ public class Main extends JavaPlugin implements Listener {
 			// Checks if player has been on the server for a total time of 350 hours,
 			// if so it sends a message to the player and server that they can be nominated for senior
 
-			player.sendMessage(Util.formatString("&2You have played for 350 hours total, it is now eligible for people to nominate you to senior "));
-			getServer().broadcastMessage(Util.formatString("&f[&7PlayTimer&f]: &2" + playerInfo.getPlayerName() + " has reached 350 hours, do you think they're ready for senior? Go nominate them on the website!"));
+			if (!playerInfo.isSeniorNominationMsgSent()) {
+				playerInfo.setSeniorNominationMsgSent(true);
+				player.sendMessage(Util.formatString("&2You have played for 350 hours total, it is now eligible for people to nominate you to senior "));
+				getServer().broadcastMessage(Util.formatString("&f[&7PlayTimer&f]: &2" + playerInfo.getPlayerName() + " has reached 350 hours, do you think they're ready for senior? Go nominate them on the website!"));
+			}
 		}
 
 		if (playerInfo.getTotalPlayTime() >= 42000 && primaryGroup.equalsIgnoreCase("senior")) {
@@ -216,6 +220,7 @@ public class Main extends JavaPlugin implements Listener {
 		// setup some default values in case we don't find them
         int totalTime = 0;
         boolean promotePending = false;
+        boolean seniorNominationMsgSent = false;
 
         try {
         	PreparedStatement st = connection.prepareStatement("SELECT * FROM users WHERE uuid=?");
@@ -224,13 +229,14 @@ public class Main extends JavaPlugin implements Listener {
         	if (rs.next()) {
         		totalTime = rs.getInt("TotalPlaytime");
         		promotePending = rs.getBoolean("promotepending");
+				seniorNominationMsgSent = rs.getBoolean("seniorNominationMsgSent");
 			}
 		} catch (SQLException e) {
         	getLogger().log(Level.SEVERE, "An SQL Exception occurred while getting user data.", e);
 		}
 
 		// setup new PlayerInfo with either values from DB or Default Values, add it to the map for caching and return
-		PlayerInfo userInfo = new PlayerInfo(uuid, totalTime, promotePending);
+		PlayerInfo userInfo = new PlayerInfo(uuid, totalTime, promotePending, seniorNominationMsgSent);
 		UserMap.put(uuid, userInfo);
 		return userInfo;
 	}

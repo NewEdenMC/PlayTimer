@@ -14,11 +14,13 @@ public class PlayerInfo {
     private String playerName;
     private int totalPlaytime;
     private boolean promotepending;
+    private boolean seniorNominationMsgSent;
 
-    PlayerInfo(UUID uuid, int totalTime, boolean promotePending) {
+    PlayerInfo(UUID uuid, int totalTime, boolean promotePending, boolean seniorNominationMsgSent) {
         this.uuid = uuid;
         totalPlaytime = totalTime;
         this.promotepending = promotePending;
+        this.seniorNominationMsgSent = seniorNominationMsgSent;
 
         OfflinePlayer player = Bukkit.getOfflinePlayer(uuid); // we need to support player checking
         playerName = player != null ? player.getName() : uuid.toString(); // just show the UUID if the server has never seen the player
@@ -64,7 +66,26 @@ public class PlayerInfo {
             promotepending = isPending;
             return true;
         } catch (SQLException e) {
-            Main.getPlugin().getLogger().log(Level.SEVERE, "Could not increment the play time for user '" + uuid + "'", e);
+            Main.getPlugin().getLogger().log(Level.SEVERE, "Could not set promote pending for user '" + uuid + "'", e);
+        }
+        return false;
+    }
+
+    public boolean isSeniorNominationMsgSent() { return seniorNominationMsgSent; }
+
+    public boolean setSeniorNominationMsgSent(boolean hasSent) {
+        try {
+            PreparedStatement stmt = Main.connection.prepareStatement("INSERT INTO `users` (`UUID`, `TotalPlaytime`, `promotepending`) VALUES (?, ?, ?)" +
+                    " ON DUPLICATE KEY UPDATE `seniorNominationMsgSent` = ?");
+            stmt.setString(1, uuid.toString());
+            stmt.setInt(2, 1);
+            stmt.setBoolean(3, hasSent);
+            stmt.setBoolean(4, hasSent);
+            stmt.executeUpdate();
+            seniorNominationMsgSent = hasSent;
+            return true;
+        } catch (SQLException e) {
+            Main.getPlugin().getLogger().log(Level.SEVERE, "Could not set senior nomination message sent status for user '" + uuid + "'", e);
         }
         return false;
     }
