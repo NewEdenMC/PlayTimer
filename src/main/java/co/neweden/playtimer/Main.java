@@ -171,17 +171,17 @@ public class Main extends JavaPlugin implements Listener {
 			// if so promotes the player to Experienced
 
 			permission.playerRemoveGroup(null, player, "Member+");
-			permission.playerAddGroup(null, player, "Experienced");
+			permission.playerAddGroup(null, player, "Regular");
 
-			player.sendMessage(Util.formatString("&2You have played for 72 hours total, as a reward you have been promoted to Experience, Congratulations!"));
-			getServer().broadcastMessage(Util.formatString("&f[&7PlayTimer&f]: &2" + playerInfo.getPlayerName() + " has just been promoted to Experienced!"));
+			player.sendMessage(Util.formatString("&2You have played for 72 hours total, as a reward you have been promoted to Regular, Congratulations!"));
+			getServer().broadcastMessage(Util.formatString("&f[&7PlayTimer&f]: &2" + playerInfo.getPlayerName() + " has just been promoted to Regular!"));
 		}
 
-		if (playerInfo.getTotalPlayTime() >= 9000 && primaryGroup.equalsIgnoreCase("experienced")) {
+		if (playerInfo.getTotalPlayTime() >= 9000 && primaryGroup.equalsIgnoreCase("regular")) {
 			// Checks if player has been on the server for a total time of 150 hours,
 			// if so promotes the player Trusted
 
-			permission.playerRemoveGroup(null, player, "Experienced");
+			permission.playerRemoveGroup(null, player, "Regular");
 			permission.playerAddGroup(null, player, "Trusted");
 
 			player.sendMessage(Util.formatString("&2You have played for 150 hours total, as a reward you have been promoted to Trusted, Congratulations!"));
